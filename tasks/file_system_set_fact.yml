@@ -45,5 +45,5 @@
   - item.value == type_fs
   with_dict: "{{ pv_listing }}"
 
-- import_tasks: ./file_system_creation.yaml
+- import_tasks: ./file_system_creation.yml
 
