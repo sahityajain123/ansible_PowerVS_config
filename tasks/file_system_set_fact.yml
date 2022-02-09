@@ -4,7 +4,7 @@
   set_fact: 
    stripe_value: "{{ item.value }}"
   when:
-  - item.key == "{{ type_fs  }}"
+  - item.key == "{{ file_system_name  }}"
   with_dict: "{{ my_stripes_list }}"
 
 - set_fact:
@@ -13,7 +13,7 @@
   set_fact:
     device_pv: "{{ device_pv + ',' +  item.key }}"
   when:
-  - item.value == type_fs
+  - item.value == file_system_name
   with_dict: "{{ pv_listing }}"
 
 - name: substituting , in data_pv variable to form a string for vg creation 
@@ -23,26 +23,26 @@
 - set_fact:
    hana_vg: "{{ item.key }}vg"
   when:
-  - item.value ==  type_fs 
+  - item.value ==  file_system_name 
   with_dict: "{{ my_vg_list }}"
 
 - set_fact:
    hana_lv: "{{ item.key }}lv"
   when:
-  - item.value == type_fs
+  - item.value == file_system_name
   with_dict: "{{ my_vg_list }}"
 
 - set_fact:
    hana_mount_point: "{{ item.key }}"
   when:
-  - item.value == type_fs
+  - item.value == file_system_name
   with_dict: "{{ my_mount_point }}"
-# need a temporary list variable to assign pv_create_list to NULL again...this section create  a list which is based on type_fs value
+# need a temporary list variable to assign pv_create_list to NULL again...this section create  a list which is based on file_system_name value
 - set_fact: pv_temp="{{ pv_temp | default([]) }}"
 - set_fact: pv_create_list="{{ pv_temp | default([])  }}"
 - set_fact: pv_create_list="{{ pv_create_list | default([])  }}  + ['{{ item.key }}']"
   when:
-  - item.value == type_fs
+  - item.value == file_system_name
   with_dict: "{{ pv_listing }}"
 
 - import_tasks: ./file_system_creation.yml

@@ -2,7 +2,7 @@
 - import_tasks: ../../../roles/read_var/tasks/main.yml
 - include_tasks: ../../../tasks/file_system_set_fact.yml 
   vars:
-   type_fs: "{{ inner_item }}" 
+   file_system_name: "{{ inner_item }}" 
   with_items: 
   - "{{ disks_configuration.names }}" 
   loop_control:

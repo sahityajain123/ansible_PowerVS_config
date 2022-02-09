@@ -7,36 +7,34 @@
 
 - name:  Manage LVM volume group(s)
   lvg:
-    vg: "{{hana_vg}}"
+    vg: "{{file_system_vg}}"
     pvs: "{{device_for_vg.stdout}}"
     state: present   
 
-
 - name: LVS | create LV  
   lvol:
-    vg: "{{ hana_vg }}" 
-    lv: "{{ hana_lv }}" 
+    vg: "{{ file_system_vg }}" 
+    lv: "{{ file_system_lv }}" 
     size: 100%FREE
     opts: --stripes {{ stripe_value }}
     state: present
 
-- name: Create directory {{ hana_mount_point }} does not exist
+- name: Create directory {{ file_system_mount_point }} does not exist
   file:
-    path: "{{ hana_mount_point }}" 
+    path: "{{ file_system_mount_point }}" 
     state: directory
     mode: '0755'
 
 - name:  create filesystems 
   filesystem:
     fstype: xfs 
-    dev: "/dev/mapper/{{hana_vg}}-{{ hana_lv }}"
+    dev: "/dev/mapper/{{file_system_vg}}-{{ file_system_lv }}"
     state: present
 
-
-- name: mount the lv on {{ hana_mount_point }}
+- name: mount the lv on {{ file_system_mount_point }}
   mount:
-    path: "{{ hana_mount_point }}" 
-    src: "/dev/mapper/{{hana_vg}}-{{ hana_lv }}" 
+    path: "{{ file_system_mount_point }}" 
+    src: "/dev/mapper/{{file_system_vg}}-{{ file_system_lv }}" 
     fstype: xfs 
     state: mounted
 
