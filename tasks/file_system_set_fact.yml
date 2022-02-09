@@ -21,19 +21,19 @@
   register: device_for_vg
 
 - set_fact:
-   hana_vg: "{{ item.key }}vg"
+   file_system_vg: "{{ item.key }}vg"
   when:
   - item.value ==  file_system_name 
   with_dict: "{{ my_vg_list }}"
 
 - set_fact:
-   hana_lv: "{{ item.key }}lv"
+   file_system_lv: "{{ item.key }}lv"
   when:
   - item.value == file_system_name
   with_dict: "{{ my_vg_list }}"
 
 - set_fact:
-   hana_mount_point: "{{ item.key }}"
+   file_system_mount_point: "{{ item.key }}"
   when:
   - item.value == file_system_name
   with_dict: "{{ my_mount_point }}"
