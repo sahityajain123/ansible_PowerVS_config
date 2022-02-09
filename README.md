@@ -1,10 +1,10 @@
-this repository is a project repository to keep ansible automation for rise.
+this repository is a project repository to keep ansible automation for creation of HANA and NW filesystems. This also contains prepareos_sles module..which setup Power system LPAR for HANA and NW. 
 
-make sure the variable file is placed in /root/variable_file.txt on both NW and HANA LPARs. Content should be like below.
+To run this automation, make sure the variable file is placed in /root/variable_file.txt on both NW and HANA LPARs. Content should be as shown below, where we capture WWNs for disk, counts of disk for each filesystems. Names  will be used for vg and lv creation and paths are mount points. 
 ```
-sahitya-suse-15:~ # cat variable_file.txt
+# cat variable_file.txt
 disks_configuration: {'counts': [2,2,1], 'names': [data,log,shared], 'paths': [/hana/data,/hana/log,/hana/shared], 'disks_wwn': [600507681082018bc8000000000057e4,600507681082018bc8000000000057e5,600507681082018bc8000000000057e6,600507681082018bc8000000000057e7,600507681082018bc8000000000057e8]}
-sahitya-suse-15:~ #
+#
 ```
 To call ansible playbook do
 
