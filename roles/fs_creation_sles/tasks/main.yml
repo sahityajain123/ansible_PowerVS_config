@@ -1,6 +1,6 @@
 ---
-- import_tasks: ../../../roles/read_var/tasks/main.yaml
-- include_tasks: ../../../tasks/file_system_set_fact.yaml 
+- import_tasks: ../../../roles/read_var/tasks/main.yml
+- include_tasks: ../../../tasks/file_system_set_fact.yml 
   vars:
    type_fs: "{{ inner_item }}" 
   with_items: 
