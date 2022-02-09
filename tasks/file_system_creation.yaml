@@ -1,0 +1,44 @@
+---
+
+
+- name: task for creating pvs 
+  shell: pvcreate {{ item }}
+  with_items: "{{ pv_create_list }}" 
+
+- name:  Manage LVM volume group(s)
+  lvg:
+    vg: "{{hana_vg}}"
+    pvs: "{{device_for_vg.stdout}}"
+    state: present   
+
+
+- name: LVS | create LV  
+  lvol:
+    vg: "{{ hana_vg }}" 
+    lv: "{{ hana_lv }}" 
+    size: 100%FREE
+    opts: --stripes {{ stripe_value }}
+    state: present
+
+- name: Create directory {{ hana_mount_point }} does not exist
+  file:
+    path: "{{ hana_mount_point }}" 
+    state: directory
+    mode: '0755'
+
+- name:  create filesystems 
+  filesystem:
+    fstype: xfs 
+    dev: "/dev/mapper/{{hana_vg}}-{{ hana_lv }}"
+    state: present
+
+
+- name: mount the lv on {{ hana_mount_point }}
+  mount:
+    path: "{{ hana_mount_point }}" 
+    src: "/dev/mapper/{{hana_vg}}-{{ hana_lv }}" 
+    fstype: xfs 
+    state: mounted
+
+
+

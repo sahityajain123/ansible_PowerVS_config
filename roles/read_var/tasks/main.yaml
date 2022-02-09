@@ -1,0 +1,73 @@
+---
+- include_vars: /root/variable_file.txt 
+
+
+- name: get the device listing using wwn 
+  shell: "multipath -ll | grep -B 1 {{ item }} | grep dm- | awk '{print \"/dev/\"$2}' "
+  register: shell_dm_list
+  with_items: "{{ disks_configuration.disks_wwn | lower }}"
+
+
+- set_fact:
+    temp_list="{{ temp_list | default([]) }} + {{ item.stdout_lines | list|flatten }}"
+  loop: "{{ shell_dm_list.results }}"
+
+# to create pv list 
+- name: creating an array of disks and appending /dev/mapper/3 to each pv wwns 
+  set_fact: pv_list="{{ pv_list |  default([]) }}  + ['{{ item }}']"
+  with_items: "{{ temp_list |  list|flatten  }}"
+
+   
+- name: for loop, to manipulate pv listing. #We use this loop to distribute pvs for names provided and use them later for filesystem creation.
+  shell: i=0; while [[ $i -lt {{ item.1 }} ]]; do echo {{ item.0 }} ; let i=i+1; done
+  register: loop_over_names
+  with_together:
+  - "{{ disks_configuration.names }}"
+  - "{{  disks_configuration.counts }}"
+
+- set_fact:
+    new_list="{{ new_list | default([]) }} + {{ item.stdout_lines | list|flatten }}"
+  loop: "{{ loop_over_names.results }}"
+
+
+
+# lets create a dict with pv and its type
+- set_fact:
+   pv_listing: "{{ pv_listing | default({}) }}"
+- set_fact:
+   pv_listing: "{{ pv_listing | combine({ item.0 : item.1 })}}"
+  with_together:
+  - "{{ pv_list }}"
+  - "{{ new_list }}"  
+
+# to create vg list dict
+- set_fact:
+   my_vg_list:  "{{ my_vg_list | default({}) }}"
+
+- set_fact:
+   my_vg_list: "{{ my_vg_list | combine({ item.0 : item.1 })}}"
+  with_together:
+  - "{{ disks_configuration.names }}"
+  - "{{ disks_configuration.names }}" 
+
+
+
+# to create mount point dict
+
+- set_fact: 
+   my_mount_point: "{{ my_mount_point | default({}) }}"
+
+- set_fact: 
+   my_mount_point: "{{ my_mount_point| combine({ item.0 : item.1 })}}"
+  with_together:
+  - "{{ disks_configuration.paths }}"
+  - "{{ disks_configuration.names }}" 
+
+# to create stripes list dict
+- set_fact:
+   my_stripes_list: "{{ my_stripes_list | default({}) }}"
+- set_fact:
+   my_stripes_list: "{{ my_stripes_list | combine({ item.0 : item.1 })}}"
+  with_together:
+  - "{{ disks_configuration.names }}"
+  - "{{ disks_configuration.counts}}"  
