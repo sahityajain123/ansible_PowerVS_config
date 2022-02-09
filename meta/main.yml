@@ -1,3 +1,7 @@
 ---
 
 galaxy_info:
+  role_name: foo
+  author: your name
+  description: your description
+  company: your company 
