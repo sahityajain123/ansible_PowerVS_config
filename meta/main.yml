@@ -1,7 +1,7 @@
 ---
 
 galaxy_info:
-  role_name: foo
-  author: your name
-  description: your description
-  company: your company 
+  role_name: ansible_PowerVS_config
+  author: SAHITYA JAIN
+  description: ansible developer
+  company: IBM
