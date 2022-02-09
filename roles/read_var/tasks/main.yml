@@ -13,8 +13,7 @@
   loop: "{{ shell_dm_list.results }}"
 
 # to create pv list 
-- name: creating an array of disks and appending /dev/mapper/3 to each pv wwns 
-  set_fact: pv_list="{{ pv_list |  default([]) }}  + ['{{ item }}']"
+- set_fact: pv_list="{{ pv_list |  default([]) }}  + ['{{ item }}']"
   with_items: "{{ temp_list |  list|flatten  }}"
 
    
