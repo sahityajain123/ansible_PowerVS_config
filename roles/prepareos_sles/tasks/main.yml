@@ -16,7 +16,7 @@
 
 - name: to enable multipathd
   shell: systemctl enable multipathd 
- 
+  
 - name: Create interfaces dictionary
   set_fact:
    interfaces: "{{ interfaces | default({}) | combine( {item: hostvars[ inventory_hostname ] ['ansible_' + item ]} ) }}"
@@ -71,7 +71,7 @@
   register: saptune_status
  
 - name: Tune SLES for SAP {{ SAP_SOLUTION | upper }}
-  shell: "saptune solution apply {{ SAP_SOLUTION }}"
+  shell: "saptune solution apply {{ SAP_SOLUTION | upper }}"
   when: saptune_status.stdout.find("{{ SAP_SOLUTION | upper }}") == -1
 
 - name: Activate SLES tuning for SAP {{ SAP_SOLUTION | upper }}

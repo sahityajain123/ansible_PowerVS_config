@@ -3,4 +3,5 @@
   connection: local 
   roles:
   - prepareos_sles
-  - fs_creation_sles 
+  tasks: 
+  - import_tasks: tasks/wrapper_terraform.yml

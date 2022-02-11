@@ -1,9 +1,59 @@
 ---
-- import_tasks: ../../../roles/read_var/tasks/main.yml
-- include_tasks: ../../../tasks/file_system_set_fact.yml 
-  vars:
-   file_system_name: "{{ inner_item }}" 
-  with_items: 
-  - "{{ disks_configuration.names }}" 
-  loop_control:
-    loop_var: inner_item
+
+## converting comma seperated wwn list to a list 
+- name: Separate facts
+  set_fact: wwn_list="{{ file_system_list.wwn.split(',') }}"
+
+- name: get the device listing using wwn. 
+  shell: "multipath -ll | grep -B 1 {{ item }} | grep dm- | awk '{print \"/dev/\"$2}' "
+  register: wwn_dm_list
+  with_items: "{{ wwn_list | lower }}"
+
+# to create pv list 
+- set_fact: empty_list="{{ empty_list | default([]) }}"
+- set_fact: wwn_to_dm_list="{{ empty_list | default([])  }}"
+- set_fact:
+   wwn_to_dm_list="{{ wwn_to_dm_list | default([]) }} + {{ item.stdout_lines | list|flatten }}"
+  loop: "{{ wwn_dm_list.results }}"
+
+- set_fact: pv_create_list="{{ empty_list | default([])  }}"
+- set_fact: pv_create_list="{{ pv_create_list |  default([]) }}  + ['{{ item }}']"
+  with_items: "{{ wwn_to_dm_list |  list|flatten  }}"
+
+- name: task for creating pvs 
+  shell: pvcreate {{ item  }}
+  with_items: "{{ pv_create_list }}"
+
+- name:  Manage LVM volume group(s)
+  lvg:
+    vg: "{{file_system_list.name}}vg"
+    pvs: "{{pv_create_list}}"
+    state: present   
+
+- name: LVS | create LV  
+  lvol:
+    vg: "{{ file_system_list.name}}vg" 
+    lv: "{{ file_system_list.name }}lv" 
+    size: 100%FREE
+    opts: --stripes {{ file_system_list.counts }} --stripesize {{ stripe_size | default('64K') }}
+    state: present
+
+- name: Create directory {{ file_system_list.paths }} does not exist
+  file:
+    path: "{{ file_system_list.paths }}" 
+    state: directory
+    mode: '0755'
+
+- name:  create filesystems 
+  filesystem:
+    fstype: xfs 
+    dev: "/dev/mapper/{{file_system_list.name}}vg-{{ file_system_list.name}}lv" 
+    opts: -K  
+    state: present
+
+- name: mount the lv on {{ file_system_list.paths }}
+  mount:
+    path: "{{ file_system_list.paths }}" 
+    src: "/dev/mapper/{{file_system_list.name}}vg-{{ file_system_list.name}}lv" 
+    fstype: xfs 
+    state: mounted
