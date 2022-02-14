@@ -2,7 +2,7 @@ this repository is a project repository to keep ansible automation for creation 
 
 To call ansible playbook do
 ```
-ansible-playbook playbook.yml -e '{"SAP_SOLUTION":HANA, disks_configuration: {"counts": [2,2,1], "names": [data,log,shared], "paths": [/hana/datal,/hana/logl,/hana/sharedl], "disks_wwn": [600507681082018bc8000000000057e4,600507681082018bc8000000000057e8,600507681082018bc8000000000057e5,600507681082018bc8000000000057e6,600507681082018bc8000000000057e7]}}'
+ansible-playbook playbook.yml -e '{"SAP_SOLUTION":HANA, disks_configuration: {"counts": [2,2,1], "names": [data,log,shared], "paths": [/hana/data,/hana/log,/hana/shared], "disks_wwn": [600507681082018bc8000000000057e4,600507681082018bc8000000000057e8,600507681082018bc8000000000057e5,600507681082018bc8000000000057e6,600507681082018bc8000000000057e7]}}'
 
 ```
 SAP_SOLUTION can be HANA or NETWEAVER depending on which LPAR you are running the ansible script. This varaible is used to setup saptune solution.
