@@ -4,6 +4,20 @@
 - name: Separate facts
   set_fact: wwn_list="{{ file_system_list.wwn.split(',') }}"
 
+# stopping multipathd daemon, will restart after rescan 
+- name: ensure multipathd daemon is stopped 
+  service:
+   name: multipathd
+   state: stopped 
+# before starting with filesystem creation, lets scan the for any new disk 
+- name: to run rescan-scsi-bus.sh command to check for new devices 
+  shell: /usr/bin/rescan-scsi-bus.sh -a -c -v
+
+- name: ensure multipathd daemon is enabled 
+  service:
+   name: multipathd
+   state: started 
+
 - name: get the device listing using wwn. 
   shell: "multipath -ll | grep -B 1 {{ item }} | grep dm- | awk '{print \"/dev/\"$2}' "
   register: wwn_dm_list

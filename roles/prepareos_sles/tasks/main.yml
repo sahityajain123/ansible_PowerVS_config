@@ -8,15 +8,12 @@
    state: "present"
   when: inventory_ip is defined
 
-- name: to run rescan-scsi-bus.sh command to check for new devices 
-  shell: /usr/bin/rescan-scsi-bus.sh -a -c -v
-  
-- name: to start multipathd 
-  shell: systemctl start multipathd
+- name: ensure multipathd daemon  is running
+  service:
+   name: multipathd
+   state: started 
 
-- name: to enable multipathd
-  shell: systemctl enable multipathd 
-  
+ 
 - name: Create interfaces dictionary
   set_fact:
    interfaces: "{{ interfaces | default({}) | combine( {item: hostvars[ inventory_hostname ] ['ansible_' + item ]} ) }}"
