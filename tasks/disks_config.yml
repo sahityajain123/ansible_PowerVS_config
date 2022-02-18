@@ -1,0 +1,6 @@
+---
+- include_tasks: ../roles/fs_creation_sles/tasks/main.yml
+  with_items:
+  - "{{ disks_config }}"
+  loop_control:
+    loop_var: file_system_list
