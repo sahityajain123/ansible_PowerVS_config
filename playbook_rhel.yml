@@ -2,7 +2,7 @@
 - hosts: localhost
   connection: local
   roles:
-  - { role: prepareos_sles, when: SAP_SOLUTION is defined }
+  - { role: prepareos_rhel, when: SAP_SOLUTION is defined }
   - { role: fs_creation, when: file_system_list is defined }
   - { role: var_validation, when: disks_configuration is defined }
   - { role: cleanup, when: disks_configuration is defined }

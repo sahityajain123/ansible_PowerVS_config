@@ -36,7 +36,7 @@
 
 # to create stripes list dict
 - set_fact:
-     disks_config_mod: "{{ disks_config_mod | default([]) + [{ 'name': item.0, 'count' : item.1, 'path' : item.2, 'wwn' : item.3 }] }}"
+     disks_config_mod: "{{ disks_config_mod | default([]) + [{ 'names': item.0, 'counts' : item.1, 'paths' : item.2, 'disks_wwn' : item.3 }] }}"
   with_together:
   - "{{ disks_configuration.names | map('trim') | list }}"
   - "{{ disks_configuration.counts | map('trim') | list }}"

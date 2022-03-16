@@ -1,0 +1,40 @@
+---
+
+- name: check for any swap device, if present, need to be removed 
+  shell: swapon -s | grep -v Filename | awk '{ print $1 }' 
+  register: swapon_device_list
+
+- debug: var=swapon_device_list
+
+- name: delete previous swap device 
+  shell: swapoff {{ item }}
+  with_items: "{{ swapon_device_list.stdout_lines }}"
+  when: swapon_device_list.stdout is defined
+
+- name: rescan for new device 
+  shell: /usr/bin/rescan-scsi-bus.sh -a -c -v
+
+- name: to check if multipath alias is enabled.
+  shell: grep "user_friendly_names no" /etc/multipath.conf
+  register: multipath_alias
+  ignore_errors: yes
+- name: setting count variable based on multipath aliasing is enabled or not
+  set_fact:
+   count: 3
+  when: multipath_alias.rc == 1
+  
+- name: get dm device for wwn  {{ swap_disk_wwn }} 
+  shell: "multipath -ll | grep -B 1 {{ swap_disk_wwn | lower  }} | grep dm- | awk '{print \"/dev/\"${{ count | default(2) }}}' "
+  register: swap_dm_name 
+- set_fact:
+   swap_dm_device: "{{ swap_dm_name.stdout }}"
+#- name: create pv based on WWN passed 
+#  shell: pvcreate {{ swap_dm_device }} -y 
+ 
+- name: mkswap the device 
+  shell: mkswap {{ swap_dm_device }} 
+
+- name: swapon the device 
+  shell: swapon {{ swap_dm_device }} 
+
+

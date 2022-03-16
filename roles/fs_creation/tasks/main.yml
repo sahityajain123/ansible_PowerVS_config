@@ -2,7 +2,7 @@
 
 ## converting comma seperated wwn list to a list 
 - name: Separate facts
-  set_fact: wwn_list="{{ file_system_list.wwn.split(',') }}"
+  set_fact: wwn_list="{{ file_system_list.disks_wwn.split(',') }}"
 
 # stopping multipathd daemon, will restart after rescan. Making sure, that it is ran only once per execution, by introducing multipathd_executed variable and defining it after multipathd is started 
 - name: ensure multipathd daemon is stopped 
@@ -22,8 +22,19 @@
   when: multipathd_executed is not defined
 - set_fact: 
    multipathd_executed: 1 
+   
+- name: to check if multipath alias is enabled.
+  shell: grep "user_friendly_names no" /etc/multipath.conf
+  register: multipath_alias
+  ignore_errors: yes
+  
+- name: setting count variable based on multipath aliasing is enabled or not
+  set_fact:
+   count: 3
+  when: multipath_alias.rc == 1
+  
 - name: get the device listing using wwn. 
-  shell: "multipath -ll | grep -B 1 {{ item }} | grep dm- | awk '{print \"/dev/\"$2}' "
+  shell: "multipath -ll | grep -B 1 {{ item }} | grep dm- | awk '{print \"/dev/\"${{ count | default(2) }}}' "
   register: wwn_dm_list
   with_items: "{{ wwn_list | lower }}"
 
@@ -38,41 +49,41 @@
 - set_fact: pv_create_list="{{ pv_create_list |  default([]) }}  + ['{{ item }}']"
   with_items: "{{ wwn_to_dm_list |  list|flatten  }}"
 
-- name: task for creating pvs 
-  shell: pvcreate {{ item  }}
-  with_items: "{{ pv_create_list }}"
+#- name: task for creating pvs 
+#  shell: pvcreate {{ item  }}
+#  with_items: "{{ pv_create_list }}"
 
-- name:  Manage LVM volume group(s)
+- name: Manage LVM volume group(s)
   lvg:
-    vg: "{{file_system_list.name}}vg"
+    vg: "{{file_system_list.names}}vg"
     pvs: "{{pv_create_list}}"
     state: present   
 
 # we are making use of --stripesize as 64K as default, unless passed explicitly in extra vars 
 - name: LVS | create LV  
   lvol:
-    vg: "{{ file_system_list.name}}vg" 
-    lv: "{{ file_system_list.name }}lv" 
-    size: 100%FREE
-    opts: --stripes {{ file_system_list.count }} --stripesize {{ stripe_size | default('64K') }}
+    vg: "{{ file_system_list.names }}vg" 
+    lv: "{{ file_system_list.names }}lv" 
+    size: 100%VG
+    opts: --stripes {{ file_system_list.counts }} --stripesize {{ stripe_size | default('64K') }}
     state: present
 
-- name: Create directory {{ file_system_list.path }} does not exist
+- name: Create directory {{ file_system_list.paths }} does not exist
   file:
-    path: "{{ file_system_list.path }}" 
+    path: "{{ file_system_list.paths }}" 
     state: directory
     mode: '0755'
 
 - name:  create filesystems 
   filesystem:
     fstype: xfs 
-    dev: "/dev/mapper/{{file_system_list.name}}vg-{{ file_system_list.name}}lv" 
+    dev: "/dev/mapper/{{file_system_list.names}}vg-{{ file_system_list.names}}lv" 
     opts: -K  
     state: present
 
-- name: mount the lv on {{ file_system_list.path }}
+- name: mount the lv on {{ file_system_list.paths }}
   mount:
-    path: "{{ file_system_list.path }}" 
-    src: "/dev/mapper/{{file_system_list.name}}vg-{{ file_system_list.name}}lv" 
+    path: "{{ file_system_list.paths }}" 
+    src: "/dev/mapper/{{file_system_list.names}}vg-{{ file_system_list.names}}lv" 
     fstype: xfs 
     state: mounted

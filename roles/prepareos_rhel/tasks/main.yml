@@ -1,0 +1,77 @@
+---
+
+- name: add /etc/hosts resolution for the host itself
+  lineinfile:
+   dest: /etc/hosts
+   regexp: "^{{ ansible_hostname }}"
+   line: "{{ inventory_ip }} {{ ansible_hostname }}"
+   state: "present"
+  when: inventory_ip is defined
+
+- name: ensure multipathd daemon  is running
+  service:
+   name: multipathd
+   state: started 
+
+ 
+- name: Create interfaces dictionary
+  set_fact:
+   interfaces: "{{ interfaces | default({}) | combine( {item: hostvars[ inventory_hostname ] ['ansible_' + item ]} ) }}"
+  with_items: "{{ ansible_interfaces | replace('-', '_') }}"
+
+- name: activate jumboframes for all networks except eth0 and lo and activate tso
+  shell: "ip link set dev {{ item.key }} mtu 9000; ethtool -K {{ item.key }} tso on"
+  with_dict: "{{ interfaces }}"
+  when:
+  - "item.key != 'lo'"
+  - "item.key != 'eth0'"
+  - "item.value.mtu != 9000"
+  - "item.value.ipv4.address is defined"
+
+
+- name: set jumboframes permanently so it is valid after reboots for all networks except eth0 and lo
+  lineinfile:
+   dest: "/etc/sysconfig/network-scripts/ifcfg-{{ item.key }}"
+   regexp: "^MTU"
+   line: "MTU='9000'"
+  with_dict: "{{ interfaces }}"
+  when:
+  - "item.key != 'lo'"
+  - "item.key != 'eth0'"
+  - "item.value.mtu != 9000"
+  - "item.value.ipv4.address is defined"
+
+
+- name: set jumboframes permanently so it is valid after reboots for all networks except eth0 and lo
+  lineinfile:
+   dest: "/etc/sysconfig/network-scripts/ifcfg-{{ item.key }}"
+   regexp: "^ETHTOOL_OPT"
+   line: "ETHTOOL_OPT='-K {{ item.key }} tso on'"
+  with_dict: "{{ interfaces }}"
+  when:
+  - "item.key != 'lo'"
+  - "item.key != 'eth0'"
+  - "item.value.mtu != 9000"
+  - "item.value.ipv4.address is defined"
+
+
+- name: restart network 
+  service:
+   name: NetworkManager 
+   state: restarted
+
+
+- name: ensure NFS client is running
+  service:
+   name: nfs-client.target
+   state: started
+   enabled: yes
+
+- name: ensure rpcbind is running
+  service:
+   name: rpcbind
+   state: started
+   enabled: yes
+
+#- name: Create ansible User and give sudo permission
+#  shell: 'groupadd ansible ; useradd ansible -g ansible -m; runuser -l ansible -c "mkdir /home/ansible/.ssh"; cd /home/ansible/.ssh; echo "{{Ansible_TowerPubKey}}" >> authorized_keys; chmod 644 authorized_keys; echo "ansible ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers; sed -i "s/Defaults\s\env_reset/Defaults\ \!env_reset/g" /etc/sudoers'
