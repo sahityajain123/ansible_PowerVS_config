@@ -1,0 +1,24 @@
+---
+
+#- set_fact:
+#   disks_configuration: "{{ file_system_list | default(disks_configuration) }}"
+- debug: var=disks_configuration
+- name: umount all filesystems 
+  mount:
+    path: "{{ item }}" 
+    fstype: xfs 
+    state: unmounted
+  with_items: "{{ disks_configuration.paths  }}"
+
+
+- name: remove all vg 
+  lvg:
+    vg: "{{ item }}vg"
+    force: yes
+    state: absent
+  with_items: "{{ disks_configuration.names  }}"
+- name: remove pvs
+  shell: pvremove /dev/mapper/3{{ item }}
+  with_items: "{{ disks_configuration.disks_wwn | lower }}"
+  ignore_errors: yes
+    
