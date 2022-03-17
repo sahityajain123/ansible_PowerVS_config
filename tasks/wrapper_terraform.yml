@@ -47,7 +47,7 @@
   debug: var=disks_config_mod
 
 
-- include_tasks: ../roles/fs_creation_sles/tasks/main.yml 
+- include_tasks: ../roles/fs_creation/tasks/main.yml 
   with_items: 
   - "{{ disks_config_mod }}" 
   loop_control:
