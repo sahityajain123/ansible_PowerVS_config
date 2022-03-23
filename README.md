@@ -11,7 +11,7 @@ This automation has 3 modules, which are independent of each other, and can be r
 3)	Configuring SWAP spaces. 
 
 
-<b>Preparing Operatng System</b>
+<b>Preparing Operating System</b>
 
 SLES: 
 This module role is named as prepareos_sles. In this module, automation for discovering of disk using rescan_scsi_disk.sh is used, which will discover newly attached disks, if any  in LPAR after it has been started.  Later we enable multipathd daemon. We also enable NFS and rpcbind daemon for SAP installations. 
