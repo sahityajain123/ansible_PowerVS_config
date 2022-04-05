@@ -1,7 +1,8 @@
 ---
-#- include_vars: /root/variable_file.txt
+# this task reads the variable passed to execute ansible roles, and manipulate them to be passed to fs_creation role, in a single dictionalry for each name variable passed in variable list. 
+# this is an intermediate task, and is required for terraform execution. It is not required if running fs_creation role directly. 
 
-- name: for loop, to manipulate pv listing. #We use this loop to distribute pvs for names provided and use them later for filesystem creation.
+- name: for loop, to manipulate pv listing. #Use this loop to distribute pvs for names provided and use them later for filesystem creation.
   shell: i=0; while [[ $i -lt {{ item.1 }} ]]; do echo {{ item.0 }} ; let i=i+1; done
   register: loop_for_wwn
   with_together:
@@ -11,51 +12,41 @@
     tmp_wwn_list="{{ tmp_wwn_list | default([]) }} + {{ item.stdout_lines | list|flatten }}"
   loop: "{{ loop_for_wwn.results }}"
 
-# lets create a dict with pv and its type
+# Create a dict with pv and its type
 - set_fact:
    pv_listing_dm: "{{ pv_listing_dm | default({}) |  combine({ item.0: item.1  })}}"
   with_together:
-  - "{{ disks_configuration.disks_wwn | map('trim') | list  }}"
+  - "{{ disks_configuration.wwns | map('trim') | list  }}"
   - "{{ tmp_wwn_list }}"
-
-- debug: msg="{{ pv_listing_dm }}"
-
-
 
 - copy: content="{{ pv_listing_dm  }}" dest=/root/tmp_file
 - shell: "cat /root/tmp_file | tr [{},] '\n' | tee /root/tmp_file_mod"
 - shell: "cat /root/tmp_file_mod | sed 's/ //g' | sed 's/\"//g' | grep {{ item }} | sed 's/:{{ item }}//g' | tr '\n' ',' | sed 's/,$//g'"
   register: tmp_wwn_var
   loop: "{{ disks_configuration.names | map('trim') | list }}"
-- debug: var=tmp_wwn_var
 
 - set_fact:
     wwn_list="{{ wwn_list | default([]) }} + {{ item.stdout_lines | list|flatten }}"
   loop: "{{ tmp_wwn_var.results }}"
-- debug: var=wwn_list
 
 # to create stripes list dict
 - set_fact:
-     disks_config_mod: "{{ disks_config_mod | default([]) + [{ 'names': item.0, 'counts' : item.1, 'paths' : item.2, 'disks_wwn' : item.3 }] }}"
+     disks_config_mod: "{{ disks_config_mod | default([]) + [{ 'name': item.0, 'count' : item.1, 'path' : item.2, 'wwns' : item.3 }] }}"
   with_together:
   - "{{ disks_configuration.names | map('trim') | list }}"
   - "{{ disks_configuration.counts | map('trim') | list }}"
   - "{{ disks_configuration.paths | map('trim') | list }}"
   - "{{ wwn_list }}"
 
-- name: Display the Dictionaries
-  debug: var=disks_config_mod
-
-
-- include_tasks: ../roles/fs_creation/tasks/main.yml 
+# execution of fs_creation role starts here. Iterate for each list created above
+- include_tasks: file_system_creation_core.yml 
   with_items: 
   - "{{ disks_config_mod }}" 
   loop_control:
-    loop_var: file_system_list
+    loop_var: file_system
 
-
-## to remove temp file created. 
-- name: remove temp file created during execution 
+## Remove temp file created. 
+- name: Remove temp file created during execution 
   file: 
    state: absent
    path: "{{ item }}"

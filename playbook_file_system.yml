@@ -1,5 +1,0 @@
----
-- hosts: localhost
-  connection: local
-  tasks:
-  - { import_tasks: tasks/disks_config.yml, when: disks_config is defined }

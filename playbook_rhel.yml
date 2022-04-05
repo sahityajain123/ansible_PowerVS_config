@@ -2,10 +2,10 @@
 - hosts: localhost
   connection: local
   roles:
-  - { role: prepareos_rhel, when: SAP_SOLUTION is defined }
-  - { role: fs_creation, when: file_system_list is defined }
-  - { role: var_validation, when: disks_configuration is defined }
-  - { role: cleanup, when: disks_configuration is defined }
-  - { role: swap_creation, when: swap_disk_wwn is defined }
-  tasks:
-  - { import_tasks: tasks/wrapper_terraform.yml, when: disks_configuration is defined }
+  - { role: prepare_rhel_sap, when: SAP_SOLUTION is defined }
+### sap_preconfigure_modify_etc_hosts is set to yes to add /etc/hosts when preinstalled sap role is executed. If set to no, it checks for entry in /etc/hosts and fail if not present.
+  - { role: sap-preconfigure, sap_preconfigure_modify_etc_hosts: yes }
+  - { role: sap-hana-preconfigure, when SAP_SOLUTION == HANA }
+  - { role: sap-netweaver-preconfigure, when SAP_SOLUTION == NETWEAVER }
+  - { role: fs_creation,      when: disks_configuration is defined }
+  - { role: swap_creation,    when: swap_disk_wwn is defined }

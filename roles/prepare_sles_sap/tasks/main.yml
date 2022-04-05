@@ -1,0 +1,96 @@
+---
+### this role preconfigures LPAR for SAP installation requirement. Based on SAP_SOLUTION input, saptune configures the system for HANA or NETWEAVER.
+
+# this is an optional requirement. If inventory_ip is passed as a variable, this task is executed. 
+- name: Add /etc/hosts resolution for the host itself
+  lineinfile:
+   dest: /etc/hosts
+   regexp: "^{{ ansible_hostname }}"
+   line: "{{ inventory_ip }} {{ ansible_hostname }}"
+   state: "present"
+  when: inventory_ip is defined
+
+# multipathd daemon is checked whether its up or not. If not, it is started. 
+- name: Ensure multipathd daemon is running
+  service:
+   name: multipathd
+   state: started 
+
+# For modification on network interfaces, create a dictionary of interfaces
+- name: Create interfaces dictionary
+  set_fact:
+   interfaces: "{{ interfaces | default({}) | combine( {item: hostvars[ inventory_hostname ] ['ansible_' + item ]} ) }}"
+  with_items: "{{ ansible_interfaces | replace('-', '_') }}"
+
+
+# activate jumbo frames and MTU for all network interfaces except management interfaces
+- name: Activate jumboframes for all networks except management interface and lo and activate tso
+  shell: "ip link set dev {{ item.key }} mtu 9000; ethtool -K {{ item.key }} tso on"
+  with_dict: "{{ interfaces }}"
+  when:
+  - "item.value.ipv4.address is defined"
+  - "item.value.ipv4.address != host_ip"
+  - "item.key != 'lo'"
+  - "item.value.mtu != 9000"
+
+# to make the above changes persistent across reboot.
+- name: Set jumboframes permanently so it is valid after reboots for all networks except eth0 and lo
+  lineinfile:
+   dest: "/etc/sysconfig/network/ifcfg-{{ item.key }}"
+   regexp: "^MTU"
+   line: "MTU='9000'"
+  with_dict: "{{ interfaces }}"
+  when:
+  - "item.value.ipv4.address is defined"
+  - "item.value.ipv4.address != host_ip"
+  - "item.key != 'lo'"
+  - "item.value.mtu != 9000"
+
+# to set jumbo frame changes persistent across reboot.
+- name: Set ETHTOOL_OPT ON permanently so it is valid after reboots for all networks except eth0 and lo
+  lineinfile:
+   dest: "/etc/sysconfig/network/ifcfg-{{ item.key }}"
+   regexp: "^ETHTOOL_OPT"
+   line: "ETHTOOL_OPT='-K {{ item.key }} tso on'"
+  with_dict: "{{ interfaces }}"
+  when:
+  - "item.value.ipv4.address is defined"
+  - "item.value.ipv4.address != host_ip"
+  - "item.key != 'lo'"
+  - "item.value.mtu != 9000"
+
+# to reinforce changes in current boot 
+- name: Restart network 
+  service:
+    name: network 
+    state: restarted
+
+# following task checked for SAPTUNE profile on system and apply {{ SAP_SOLUTION }} profile if not applied. Also check for saptune rpm installation
+- name: Checking for saptune package installation
+  zypper:
+    name: saptune
+    state: present
+
+- name: Check if {{ SAP_SOLUTION | upper }} solution is applied or not 
+  shell: "saptune solution enabled"
+  register: saptune_status
+ 
+- name: Tune SLES for SAP {{ SAP_SOLUTION | upper }}
+  shell: "saptune solution apply {{ SAP_SOLUTION | upper }}"
+  when: saptune_status.stdout.find("{{ SAP_SOLUTION | upper }}") == -1
+
+- name: Activate SLES tuning for SAP {{ SAP_SOLUTION | upper }}
+  shell: "saptune daemon start"
+
+# to Insure that NFS and rpcbind daemon are up. 
+- name: Ensure NFS client is running
+  service:
+   name: nfs
+   state: started
+   enabled: yes
+
+- name: Ensure rpcbind is running
+  service:
+   name: rpcbind
+   state: started
+   enabled: yes

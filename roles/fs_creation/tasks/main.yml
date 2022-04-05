@@ -1,89 +1,18 @@
 ---
+### this role creates filesystem for SAP installations. 
 
-## converting comma seperated wwn list to a list 
-- name: Separate facts
-  set_fact: wwn_list="{{ file_system_list.disks_wwn.split(',') }}"
+- name: Run validaton for terraform variables if terraform_wrapper is true
+  import_tasks: terraform_disks_validation.yml
+  when: terraform_wrapper|default(False) == True
 
-# stopping multipathd daemon, will restart after rescan. Making sure, that it is ran only once per execution, by introducing multipathd_executed variable and defining it after multipathd is started 
-- name: ensure multipathd daemon is stopped 
-  service:
-   name: multipathd
-   state: stopped
-  when: multipathd_executed is not defined  
+- name: Use Terraform Warpper and Create Filesystem if terraform_wrapper is true
+  import_tasks: terraform_wrapper.yml
+  when: terraform_wrapper|default(False) == True
 
-# before starting with filesystem creation, lets scan the for any new disk 
-- name: to run rescan-scsi-bus.sh command to check for new devices 
-  shell: /usr/bin/rescan-scsi-bus.sh -a -c -v
-  when: multipathd_executed is not defined
-- name: ensure multipathd daemon is enabled 
-  service:
-   name: multipathd
-   state: started 
-  when: multipathd_executed is not defined
-- set_fact: 
-   multipathd_executed: 1 
-   
-- name: to check if multipath alias is enabled.
-  shell: grep "user_friendly_names no" /etc/multipath.conf
-  register: multipath_alias
-  ignore_errors: yes
-  
-- name: setting count variable based on multipath aliasing is enabled or not
-  set_fact:
-   count: 3
-  when: multipath_alias.rc == 1
-  
-- name: get the device listing using wwn. 
-  shell: "multipath -ll | grep -B 1 {{ item }} | grep dm- | awk '{print \"/dev/\"${{ count | default(2) }}}' "
-  register: wwn_dm_list
-  with_items: "{{ wwn_list | lower }}"
-
-# to create pv list 
-- set_fact: empty_list="{{ empty_list | default([]) }}"
-- set_fact: wwn_to_dm_list="{{ empty_list | default([])  }}"
-- set_fact:
-   wwn_to_dm_list="{{ wwn_to_dm_list | default([]) }} + {{ item.stdout_lines | list|flatten }}"
-  loop: "{{ wwn_dm_list.results }}"
-
-- set_fact: pv_create_list="{{ empty_list | default([])  }}"
-- set_fact: pv_create_list="{{ pv_create_list |  default([]) }}  + ['{{ item }}']"
-  with_items: "{{ wwn_to_dm_list |  list|flatten  }}"
-
-#- name: task for creating pvs 
-#  shell: pvcreate {{ item  }}
-#  with_items: "{{ pv_create_list }}"
-
-- name: Manage LVM volume group(s)
-  lvg:
-    vg: "{{file_system_list.names}}vg"
-    pvs: "{{pv_create_list}}"
-    state: present   
-
-# we are making use of --stripesize as 64K as default, unless passed explicitly in extra vars 
-- name: LVS | create LV  
-  lvol:
-    vg: "{{ file_system_list.names }}vg" 
-    lv: "{{ file_system_list.names }}lv" 
-    size: 100%VG
-    opts: --stripes {{ file_system_list.counts }} --stripesize {{ stripe_size | default('64K') }}
-    state: present
-
-- name: Create directory {{ file_system_list.paths }} does not exist
-  file:
-    path: "{{ file_system_list.paths }}" 
-    state: directory
-    mode: '0755'
-
-- name:  create filesystems 
-  filesystem:
-    fstype: xfs 
-    dev: "/dev/mapper/{{file_system_list.names}}vg-{{ file_system_list.names}}lv" 
-    opts: -K  
-    state: present
-
-- name: mount the lv on {{ file_system_list.paths }}
-  mount:
-    path: "{{ file_system_list.paths }}" 
-    src: "/dev/mapper/{{file_system_list.names}}vg-{{ file_system_list.names}}lv" 
-    fstype: xfs 
-    state: mounted
+- name: Create Filesystem without terraform wrapper
+  include_tasks: file_system_creation_core.yml
+  with_items:
+  - "{{ disks_configuration }}"
+  loop_control:
+    loop_var: file_system
+  when: terraform_wrapper|default(False) == False

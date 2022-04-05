@@ -1,18 +1,15 @@
 ---
-
+### this role is for validation of input sent in  disks_configuration variable. Check for valid WWNs, counts passed in ansible extra vars. Exit with error, if validation fails. 
+ 
 - name: running rescan command 
   shell: rescan-scsi-bus.sh 
+
+# validate each wwn provided with multipath -ll command, for its presence. fail, if any 1 doesnot match. 
 - name: validating the wwn values passed 
   shell: /sbin/multipath -ll | grep {{ item }} 
   register:  validation_check  
-  with_items: "{{ disks_configuration.disks_wwn | lower }}"
+  with_items: "{{ disks_configuration.wwns | lower }}"
   ignore_errors: true
-- debug: var=validation_check
-
-#- set_fact:
-#    wwn_list="{{ wwn_list | default([]) }} + {{ item.stdout_lines | list|flatten }}"
-#  loop: "{{ tmp_wwn_var.results }}"
-#- debug: var=wwn_list
 
 - name: check for the results 
   fail:
@@ -20,37 +17,30 @@
   when: item.rc==1
   with_items: "{{ validation_check.results }}"
 
+# to get count of unique WWN
 - name: validate number of wwn present 
   set_fact:
-   total_wwn: "{{ disks_configuration.disks_wwn | unique |  length }}"
+   total_wwn: "{{ disks_configuration.wwns | unique |  length }}"
 
-- debug: var=total_wwn 
+# fail if total count of disks and sum of counts provided doesnot match. Also match wwn uniq values. Any duplicate, will lead to failure 
 - set_fact: count_total=0
 - name: get the total count as provided 
   set_fact: 
    count_total: "{{ count_total|int +item|int }}" 
   with_items: "{{ disks_configuration.counts }}"
 
-- debug: var=count_total
-
-
 - fail:
    msg: "Number of unique  WWN provided = {{ total_wwn }} is not equal to total count {{ count_total }} "
   when:  count_total !=  total_wwn 
 
+# fail if count value and number of items in count, name and paths are different. 
 - name: check for number of fields for counts, names and paths 
   set_fact:
    count_fields: "{{ disks_configuration.counts | length }}"
    names_fields: "{{ disks_configuration.names | length }}"
    paths_fields: "{{ disks_configuration.paths | length }}"
-- debug: var=count_fields
-- debug: var=names_fields
-- debug: var=paths_fields
+
 - fail: 
    msg: Number of inputs doesnot match, please verify INPUT
   when: 
   - count_fields != names_fields or names_fields != paths_fields
-
-## we are going to validate path names here , we will make sure that overlapping path names are not provided, for eg. /usr/sap/trans is not preceeding /usr/sap.  
-###- name: validating path names provided as input 
-  
