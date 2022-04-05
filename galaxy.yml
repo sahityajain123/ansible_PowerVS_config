@@ -1,3 +1,5 @@
+namespaces: "power"
+
 name: "power_linux_ibm_sap_config"
 
 version: "0.1.0"
