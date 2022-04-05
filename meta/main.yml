@@ -1,7 +1,0 @@
----
-
-galaxy_info:
-  role_name: power_linux_ibm_sap_config
-  author: SAHITYA JAIN
-  description: RHEL/SLES ansible automation to prepare LPARs for installing SAP on Power Systems.
-  company: IBM
