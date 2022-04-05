@@ -1,0 +1,31 @@
+name: "power_linux_ibm_sap_config"
+
+version: "0.1.0"
+
+readme: "README.md"
+
+authors:
+- "Sahitya Jain, Suraj Bharadwaj"
+
+description: RHEL/SLES ansible automation to prepare LPARs for installing SAP on Power Systems.
+
+license_file: "LICENSE"
+
+tags:
+- power
+- sap
+- RHEL
+- SLES
+- rhel
+- sles
+- ibm
+
+dependencies: {}
+
+repository: "https://github.com/sahityajain123/ansible_PowerVS_config"
+
+documentation: "https://github.com/sahityajain123/ansible_PowerVS_config"
+
+homepage: "https://github.com/sahityajain123/ansible_PowerVS_config"
+
+issues: "https://github.com/sahityajain123/ansible_PowerVS_config/issues"
