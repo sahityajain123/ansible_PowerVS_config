@@ -1,5 +1,5 @@
 galaxy_info:
-  name: power_linux_sap_prepare
+  role_name: power_linux_sap_prepare
   author: Sahitya Jain, Suraj Bharadwaj
   description: RHEL/SLES ansible automation to prepare LPARs for installing SAP on Power Systems.
   company: IBM
