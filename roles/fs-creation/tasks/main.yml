@@ -2,15 +2,15 @@
 ### this role creates filesystem for SAP installations. 
 
 - name: Run validaton for terraform variables if terraform_wrapper is true
-  import_tasks: terraform_disks_validation.yml
+  import_tasks: terraform-disks-validation.yml
   when: terraform_wrapper|default(False) == True
 
 - name: Use Terraform Warpper and Create Filesystem if terraform_wrapper is true
-  import_tasks: terraform_wrapper.yml
+  import_tasks: terraform-wrapper.yml
   when: terraform_wrapper|default(False) == True
 
 - name: Create Filesystem without terraform wrapper
-  include_tasks: file_system_creation_core.yml
+  include_tasks: file-system-creation-core.yml
   with_items:
   - "{{ disks_configuration }}"
   loop_control:

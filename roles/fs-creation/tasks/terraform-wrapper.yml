@@ -39,7 +39,7 @@
   - "{{ wwn_list }}"
 
 # execution of fs_creation role starts here. Iterate for each list created above
-- include_tasks: file_system_creation_core.yml 
+- include_tasks: file-system-creation-core.yml 
   with_items: 
   - "{{ disks_config_mod }}" 
   loop_control:

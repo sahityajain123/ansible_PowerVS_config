@@ -1,3 +1,5 @@
+---
+
 galaxy_info:
   role_name: power_linux_sap_prepare
   author: Sahitya Jain, Suraj Bharadwaj
@@ -11,8 +13,6 @@ galaxy_info:
   galaxy_tags:
     - power
     - sap
-    - RHEL
-    - SLES
     - rhel
     - sles
     - ibm

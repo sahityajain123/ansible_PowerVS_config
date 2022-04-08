@@ -1,7 +1,0 @@
----
-- hosts: localhost
-  connection: local
-  roles:
-  - { role: prepare_sles_sap, when: SAP_SOLUTION is defined }
-  - { role: fs_creation,      when: disks_configuration is defined }
-  - { role: swap_creation,    when: swap_disk_wwn is defined }
