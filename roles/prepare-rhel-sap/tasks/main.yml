@@ -4,13 +4,15 @@
 # subscribing to RHEL and setting release to {{ rhel_subcription.release }}
 - name: Subscribing to RHEL and setting release to {{ rhel_subcription.release }}
   shell: |
-   subscription-manager register --username {{ rhel_subcription.username }} --password {{ rhel_subcription.password }} --auto-attach --force
-   subscription-manager release --set={{ rhel_subcription.release }}
+   subscription-manager register --username {{ rhel_subscription.username }} --password {{ rhel_subscription.password }} --auto-attach --force
+   subscription-manager release --set={{ rhel_subscription.release }}
+  when: rhel_subscription is defined
 
 # Add repos for installing RHEL packages required for SAP installation
 - name: Adding RHEL repos
   shell: subscription-manager repos --enable="rhel-8-for-ppc64le-baseos-e4s-rpms" --enable="rhel-8-for-ppc64le-appstream-e4s-rpms" --enable="rhel-8-for-ppc64le-sap-solutions-e4s-rpms" --enable="rhel-8-for-ppc64le-sap-netweaver-e4s-rpms" --enable="rhel-8-for-ppc64le-highavailability-e4s-rpms"
-
+  when: rhel_subscription is defined
+  
 # multipathd daemon is checked whether its up or not. If not, it is started. 
 - name: Ensure multipathd daemon is running
   service:

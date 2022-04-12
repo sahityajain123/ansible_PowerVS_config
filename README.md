@@ -3,7 +3,7 @@
 
 ## Introduction
 
-This ansible collection simplifies PowerVS LPAR configuration for installing SAP HANA and SAP Netweaver on SLES and RHEL environments. It doesn't install SAP HANA or NETWEAVER applications but, prepares the OS with correct configurations for HANA/Netweaver installations for best performance. They can be executed on same LPAR or different LPARS.
+This ansible collection simplifies PowerVS LPAR configuration for installing SAP HANA and SAP Netweaver on SLES and RHEL environments. It doesn't install SAP HANA or NETWEAVER applications but, prepares the OS with correct configurations for HANA/Netweaver installations for best performance. They can be executed on same LPAR or different LPARs.
 
 This collection has 3 modules, which are independent of each other and can be run individually. All the roles are written to be executed on localhost.
 
@@ -18,64 +18,75 @@ This collection has 3 modules, which are independent of each other and can be ru
         <tr>
             <th>Name</th>
             <th>Input Variable Name</th>
+		<th>Mandatory or Optional</th>
 			<th>Variable description</th>
 			<th>Variable Values</th>
         </tr>
     </thead>
     <tbody>
         <tr>
-            <td rowspan=2><b>prepare-sles-sap</b><br /></td>
+            <td rowspan=3><b>prepare-sles-sap</b><br /></td>
             <td rowspan=1><b>1. SAP_SOLUTION</b></td>
-            <td rowspan=1>RHEL community roles for HANA or NETWEAVER will be executed</td>
-            <td rowspan=1><b>HANA or NETWEAVER or Both(NETWEAVER+HANA)</b></td>
+	    <td><b>Mandatory</b></td>
+            <td rowspan=1>Saptune is executed based on this value</td>
+            <td rowspan=1><b>HANA or NETWEAVER or NETWEAVER+HANA</b></td>
         </tr>
         <tr>
             <td><b>2. host_ip</b></td>
+	    <td><b>Mandatory</b></td>
             <td>Management IPv4 address</td>
             <td>e.g.: 192.168.1.1</td>
+        </tr>
+	<tr>
+            <td><b>3. suse_subscription : { <br />username:"",<br />key:"", <br />release:"" <br />}</td>
+  	    <td><b>Optional</b></td>
+            <td>SUSE subscription information. It is a dictionary. Should be set only if subscription is not present already or subscription has to be updated</td>
+            <td>e.g.: { <br />username:"XYZ",<br />key:"ABC" ,<br />release:"12"<br />}</td>
         </tr>
          <tr>
             <td rowspan=4><b>prepare-rhel-sap</b><br /></td>
             <td rowspan=1><b>1. SAP_SOLUTION</b></td>
-            <td rowspan=1>Saptune is executed based on this value</td>
+	    <td><b>Mandatory</b></td>
+            <td rowspan=1>RHEL community roles for HANA or NETWEAVER will be executed</td>
             <td rowspan=1><b>HANA or NETWEAVER</b></td>
         </tr>
         <tr>
             <td><b>2. host_ip</b></td>
+    	    <td><b>Mandatory</b></td>
             <td>Management IPv4 address</td>
             <td>e.g.: 192.168.1.1</td>
         </tr>
 	<tr>
             <td><b>3. sap_domain</b></td>
+	    <td><b>Mandatory</b></td>
             <td>sap domain name</td>
             <td>e.g.: xyz.com</td>
         </tr>
 		 <tr>
             <td><b>4. rhel_subscription : { <br />username:"",<br />password:"" ,<br />release:""<br />}</td>
-            <td>RHEL subscription information. It is a dictionary</td>
+  	    <td><b>Optional</b></td>
+            <td>RHEL subscription information. It is a dictionary. Should be set only if subscription is not present already or subscription has to be updated</td>
             <td>e.g.: { <br />username:"XYZ",<br />password:"ABC" ,<br />release:"8.2"<br />}</td>
         </tr>
 		<tr>
-         <td rowspan=3><b>fs-creation</b><br /></td>
+         <td rowspan=2><b>fs-creation</b><br /></td>
             <td rowspan=1><b>1.a. disks_configuration: { counts: [ ], names: [ ],paths: [ ],wwns: [ ] }<br />1.b. disks_configuration: [ { name: "", path:"", wwns: }...]</b></td>
+ 	    <td><b>Mandatory</b></td>
             <td>Disks configuration value to create and mount filesystems. Supports 2 data structures. First data structure is a single dictionary. Second data structure is a list of dictionaries.</td>
             <td rowspan=1>see <b>example A</b> and <b>example B</b> below</td>
         </tr>
-        <tr>
-            <td><b>2. terraform_wrapper</b></td>
-            <td>This flag is bool. If input is of data structure type a then this flag has to be set True. </td>
-            <td>e.g.: <b>True or False. Default is False</b></td>
-        </tr>
-		<tr>
-            <td><b>3. stripe_size</b></td>
-            <td>This is optional, stripe size for disks  </td>
+	<tr>
+            <td><b>2. stripe_size</b></td>
+	    <td><b>Optional</b></td>
+            <td>stripe size for disks  </td>
             <td><b>Default is 64K</b></td>
         </tr>
-		<tr>
-            <td><b>swap-creation</b></td>
+	<tr>
+            <td rowspan=1><b>swap-creation</b><br /></td>
             <td><b>swap_disk_wwn</b></td>
+	    <td><b>Mandatory</b></td>
             <td>wwn id of swap disk</td>
-		    <td><b>wwn value</b></td>
+	    <td><b>wwn value</b></td>
         </tr>
     </tbody>
 </table>
@@ -94,6 +105,7 @@ This role performs the following tasks:
 - Sets **MTU** value to **9000** for SAP network interfaces
 - **TSO** is enabled for SAP network interfaces
 - **SAPTUNE SOLUTION** for **HANA or NETWEAVER or NETWEAVER+HANA** is applied based on parameter passed.
+- **Activates SuSE subscription**
 
 All settings applied remain persistent across reboot.
 
@@ -114,6 +126,11 @@ This role is followed by execution of following community roles
 
 All settings applied remain persistent across reboot.
 
+**Note:** 
+Ansible playbook may report **Failure/Warning**, if scripts analyse reboot is required for settings applied by it. User should reboot thier LPAR, in that case. 
+
+
+
 ### 2. Creating Filesystems for SAP installations
 
 This module is same for both SLES and RHEL.
@@ -128,7 +145,7 @@ This role performs the following tasks:
 
 A separate **task** called **terraform-wrapper.yml** is used to handle the variable values passed **from terraform output** to execute this role, via **terraform**.
 
-The input variable **disks_configuration** for this role supports 2 data structures. When using terraform data structure, one more variable called **terraform_wrapper** needs to be set as **True**.Only then terraform-wrapper.yml will convert the terraform data structure in **example A** to normal data structure in **example B** below. 
+The input variable **disks_configuration** for this role supports 2 data structures. Only then terraform-wrapper.yml will convert the terraform data structure in **example A** to normal data structure in **example B** below. 
 
 **Example A**.**Terraform** Data structure for **disks_configuration** variable value example:
 ```
@@ -196,13 +213,13 @@ These community roles are needed, as they configure RHEL LPAR as required for SA
 
 ### Execution examples
 
-1. To run only **prepare-sles-sap** role, 
+1. To run only **prepare-sles-sap** role without SuSE subscription variable, 
 
 ```
 ansible-playbook playbook-sles.yml -e '{SAP_SOLUTION: "HANA", host_ip: "192.168.1.1" }'
 ```
 
-2. To run only **prepare-rhel-sap** role, 
+2. To run only **prepare-rhel-sap** role with RHEL Subscription variable, 
 
 ```
 ansible-playbook playbook-rhel.yml -e '{SAP_SOLUTION: "NETWEAVER", sap_domain: xyz.com, rhel_subscription: { username: "XYZ",password: "ABC", release: "8.2"}, host_ip: "192.168.1.1"}}'
@@ -211,7 +228,7 @@ ansible-playbook playbook-rhel.yml -e '{SAP_SOLUTION: "NETWEAVER", sap_domain: x
 3. To run only **fs-creation** role to create filesystems using **data structure example A** above for disks_configuration:
 
 ```
-ansible-playbook playbook-sles.yml -e '{terraform_wrapper: True, disks_configuration: {counts:[8,8,1,1], names:[data,log,shared,usrsap], paths:[/hana/data,/hana/log,/hana/shared,/usr/sap], wwns:[6005076810810261F800000000004094,6005076810810261F800000000004096,6005076810810261F80000000000409D,6005076810810261F8000000000040A3,6005076810810261F80000000000409A,6005076810810261F8000000000040A0,6005076810810261F8000000000040A4,6005076810810261F800000000004097,6005076810810261F800000000004098,6005076810810261F80000000000409E,6005076810810261F80000000000409B,6005076810810261F80000000000409F,6005076810810261F8000000000040A2,6005076810810261F8000000000040A1,6005076810810261F800000000004095,6005076810810261F800000000004093,6005076810810261F80000000000409C,6005076810810261F800000000004099]}
+ansible-playbook playbook-sles.yml -e '{ disks_configuration: {counts:[8,8,1,1], names:[data,log,shared,usrsap], paths:[/hana/data,/hana/log,/hana/shared,/usr/sap], wwns:[6005076810810261F800000000004094,6005076810810261F800000000004096,6005076810810261F80000000000409D,6005076810810261F8000000000040A3,6005076810810261F80000000000409A,6005076810810261F8000000000040A0,6005076810810261F8000000000040A4,6005076810810261F800000000004097,6005076810810261F800000000004098,6005076810810261F80000000000409E,6005076810810261F80000000000409B,6005076810810261F80000000000409F,6005076810810261F8000000000040A2,6005076810810261F8000000000040A1,6005076810810261F800000000004095,6005076810810261F800000000004093,6005076810810261F80000000000409C,6005076810810261F800000000004099]}
 ```
 
 4. To run only **fs-creation** role to create filesystems using **data structure example B** above for disks_configuration:
@@ -228,18 +245,18 @@ ansible-playbook playbook-sles.yml -e '{swap_disk_wwn: 6005076810810261F80000000
 6. To run all roles for **RHEL( prepare-rhel-sap, fs-creation and swap-creation)** using **data structure example A** above for disks_configuration:
 
 ```
-ansible-playbook playbook-rhel.yml -e '{SAP_SOLUTION: "NETWEAVER", sap_domain: xyz.com, rhel_subscription: { username: "XYZ",password: "ABC", release: "8.2"}, host_ip: "192.168.1.1", terraform_wrapper: True, disks_configuration: {counts:[8,8,1,1], names:[data,log,shared,usrsap], paths:[/hana/data,/hana/log,/hana/shared,/usr/sap], wwns:[6005076810810261F800000000004094,6005076810810261F800000000004096,6005076810810261F80000000000409D,6005076810810261F8000000000040A3,6005076810810261F80000000000409A,6005076810810261F8000000000040A0,6005076810810261F8000000000040A4,6005076810810261F800000000004097,6005076810810261F800000000004098,6005076810810261F80000000000409E,6005076810810261F80000000000409B,6005076810810261F80000000000409F,6005076810810261F8000000000040A2,6005076810810261F8000000000040A1,6005076810810261F800000000004095,6005076810810261F800000000004093,6005076810810261F80000000000409C,6005076810810261F800000000004099], swap_disk_wwn: 6005076810810261F80000000000409H}'
+ansible-playbook playbook-rhel.yml -e '{SAP_SOLUTION: "NETWEAVER", sap_domain: xyz.com, rhel_subscription: { username: "XYZ",password: "ABC", release: "8.2"}, host_ip: "192.168.1.1", disks_configuration: {counts:[8,8,1,1], names:[data,log,shared,usrsap], paths:[/hana/data,/hana/log,/hana/shared,/usr/sap], wwns:[6005076810810261F800000000004094,6005076810810261F800000000004096,6005076810810261F80000000000409D,6005076810810261F8000000000040A3,6005076810810261F80000000000409A,6005076810810261F8000000000040A0,6005076810810261F8000000000040A4,6005076810810261F800000000004097,6005076810810261F800000000004098,6005076810810261F80000000000409E,6005076810810261F80000000000409B,6005076810810261F80000000000409F,6005076810810261F8000000000040A2,6005076810810261F8000000000040A1,6005076810810261F800000000004095,6005076810810261F800000000004093,6005076810810261F80000000000409C,6005076810810261F800000000004099], swap_disk_wwn: 6005076810810261F80000000000409H}'
 ```
 
 7. To run all roles for **SLES( prepare-sles-sap, fs-creation and swap-creation)** using **data structure example B** above for disks_configuration:
 
 ```
-ansible-playbook playbook-sles.yml -e '{ SAP_SOLUTION: "NETWEAVER", host_ip: "192.168.1.1", disks_configuration: [{ name: log, path: /hana/log, wwns: 6005076810810261F800000000004098,6005076810810261F80000000000409E,6005076810810261F80000000000409B,6005076810810261F80000000000409F,6005076810810261F8000000000040A2,6005076810810261F8000000000040A1,6005076810810261F800000000004095,6005076810810261F800000000004093},{ name: shared, path: /hana/shared, wwns: 6005076810810261F80000000000409C},{ name: usrsap, path: /usr/sap, wwns: 6005076810810261F800000000004099}], swap_disk_wwn: 6005076810810261F80000000000409H }'
+ansible-playbook playbook-sles.yml -e '{ SAP_SOLUTION: "NETWEAVER", host_ip: "192.168.1.1", suse_subscription: { username: "XYZ", key: "ABC", release: "15"},  disks_configuration: [{ name: log, path: /hana/log, wwns:   6005076810810261F800000000004098,6005076810810261F80000000000409E,6005076810810261F80000000000409B,6005076810810261F80000000000409F,6005076810810261F8000000000040A2,6005076810810261F8000000000040A1,6005076810810261F800000000004095,6005076810810261F800000000004093},{ name: shared, path: /hana/shared, wwns: 6005076810810261F80000000000409C},{ name: usrsap, path: /usr/sap, wwns: 6005076810810261F800000000004099}], swap_disk_wwn: 6005076810810261F80000000000409H }'
 ```
 
 Similarly, only RHEL modules can be executed by changing playbook name to playbook-rhel.yml, which is part of this collection.
 
-<b>Requirements, Dependencies and Testing</b>
+### Requirements, Dependencies and Testing
 
 
 ### Operating System requirements

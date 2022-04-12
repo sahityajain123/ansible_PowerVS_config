@@ -1,13 +1,17 @@
 ---
-### this role creates filesystem for SAP installations. 
+### this role creates filesystem for SAP installations.
+
+# to run rescan-scsi-bus script to refresh device list
+- name: Run rescan-scsi-bus.sh command to check for new devices 
+  shell: /usr/bin/rescan-scsi-bus.sh -a -c -v
 
 - name: Run validaton for terraform variables if terraform_wrapper is true
   import_tasks: terraform-disks-validation.yml
-  when: terraform_wrapper|default(False) == True
+  when: disks_configuration | type_debug == "dict"
 
 - name: Use Terraform Warpper and Create Filesystem if terraform_wrapper is true
   import_tasks: terraform-wrapper.yml
-  when: terraform_wrapper|default(False) == True
+  when: disks_configuration | type_debug == "dict"
 
 - name: Create Filesystem without terraform wrapper
   include_tasks: file-system-creation-core.yml
@@ -15,4 +19,4 @@
   - "{{ disks_configuration }}"
   loop_control:
     loop_var: file_system
-  when: terraform_wrapper|default(False) == False
+  when: disks_configuration | type_debug == "list"
