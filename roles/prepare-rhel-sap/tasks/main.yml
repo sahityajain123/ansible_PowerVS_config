@@ -2,26 +2,31 @@
 # this role configures RHEL lpar for sap installation.
 
 # subscribing to RHEL and setting release to {{ rhel_subscription.release }}
-#- name: Subscribing to RHEL and setting release to {{ rhel_subcription.release }}
-#  shell: |
-#   subscription-manager register --username {{ rhel_subscription.username }} --password {{ rhel_subscription.password }} --auto-attach --force
-#   subscription-manager release --set={{ rhel_subscription.release }}
-#  when: rhel_subscription is defined
-
-# capturing the release prefix for rhel_subscription.release for substitutution in repos name
-- name: get the release prefix
-  shell: echo {{ rhel_subscription.release }} | awk -F'.' '{ print $1 }'
-  register: release_prefix
+- name: Subscribing to RHEL and setting release to {{ rhel_subscription.release }}
+  redhat_subscription:
+    state: present
+    username: "{{ rhel_subscription.username }}"
+    password: "{{ rhel_subscription.password }}"
+    release: "{{ rhel_subscription.release }}"
+    auto_attach: true
   when: rhel_subscription is defined
 
-# setting fact for release prefix
+# setting fact for major release. This will be used to setup repos for particular release.
 - set_fact:
-   r_p={{ release_prefix.stdout }}
+   rhel_major_release={{ rhel_subscription.release | int }}
   when: rhel_subscription is defined
 
 # Add repos for installing RHEL packages required for SAP installation
 - name: Adding RHEL repos
-  shell: subscription-manager repos --enable="rhel-{{ r_p }}-for-ppc64le-baseos-e4s-rpms" --enable="rhel-{{ r_p }}-for-ppc64le-appstream-e4s-rpms" --enable="rhel-{{ r_p }}-for-ppc64le-sap-solutions-e4s-rpms" --enable="rhel-{{ r_p }}-for-ppc64le-sap-netweaver-e4s-rpms" --enable="rhel-{{ r_p }}-for-ppc64le-highavailability-e4s-rpms"
+  rhsm_repository:
+   name: "{{ item }}"
+   state: enabled
+  with_items:
+  - rhel-{{ rhel_major_release }}-for-ppc64le-baseos-e4s-rpms
+  - rhel-{{ rhel_major_release }}-for-ppc64le-appstream-e4s-rpms
+  - rhel-{{ rhel_major_release }}-for-ppc64le-sap-solutions-e4s-rpms
+  - rhel-{{ rhel_major_release }}-for-ppc64le-sap-netweaver-e4s-rpms
+  - rhel-{{ rhel_major_release }}-for-ppc64le-highavailability-e4s-rpms
   when: rhel_subscription is defined
   
 # multipathd daemon is checked whether its up or not. If not, it is started. 

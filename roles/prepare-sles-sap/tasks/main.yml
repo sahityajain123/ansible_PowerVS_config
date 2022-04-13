@@ -3,10 +3,10 @@
 
 # subscribing to SuSE subscription
 # Add repos for installing SLES packages required for SAP installation
-- name: SUSEconnect using {{ suse_subscription.username }} and key
+- name: Register SuSE and enable repos
   shell: |
    SUSEConnect -r {{ suse_subscription.key }}  -e {{ suse_subscription.username }}
-   SUSEConnect -p sle-module-public-cloud/{{suse_subscription.release}}/ppc64le" 
+   SUSEConnect -p sle-module-public-cloud/{{suse_subscription.release}}/ppc64le
   when: suse_subscription is defined
 
 # multipathd daemon is checked whether its up or not. If not, it is started. 
