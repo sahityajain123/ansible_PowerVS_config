@@ -33,14 +33,14 @@ This collection has 3 modules, which are independent of each other and can be ru
         </tr>
         <tr>
             <td><b>2. host_ip</b></td>
-	    <td><b>Mandatory</b></td>
-            <td>Management IPv4 address</td>
+	    <td><b>Optional</b></td>
+            <td>Management/Primary IPv4 address. This variable is required if you are using exclusive network interfaces for SAP. In that case, setting MTU and TSO for interface hosting provided IP , is excluded. If not provided all interfaces except lo0 and interfaces with no IP configured are only excluded. </td>
             <td>e.g.: 192.168.1.1</td>
         </tr>
 	<tr>
             <td><b>3. suse_subscription : { <br />username:"",<br />key:"", <br />release:"" <br />}</td>
   	    <td><b>Optional</b></td>
-            <td>SUSE subscription information. It is a dictionary. Should be set only if subscription is not present already or subscription has to be updated</td>
+            <td>SUSE subscription information. It is a dictionary. Should be set only if subscription is not already set or subscription has to be updated</td>
             <td>e.g.: { <br />username:"XYZ",<br />key:"ABC" ,<br />release:"12"<br />}</td>
         </tr>
          <tr>
@@ -53,7 +53,7 @@ This collection has 3 modules, which are independent of each other and can be ru
         <tr>
             <td><b>2. host_ip</b></td>
     	    <td><b>Mandatory</b></td>
-            <td>Management IPv4 address</td>
+            <td>Management/Primary IPv4 address. This variable is required if you are using exclusive network interfaces for SAP. In that case, setting MTU and TSO for interface hosting provided IP , is excluded. If not provided all interfaces except lo0 and interfaces with no IP configured are only excluded.</td>
             <td>e.g.: 192.168.1.1</td>
         </tr>
 	<tr>
@@ -65,7 +65,7 @@ This collection has 3 modules, which are independent of each other and can be ru
 		 <tr>
             <td><b>4. rhel_subscription : { <br />username:"",<br />password:"" ,<br />release:""<br />}</td>
   	    <td><b>Optional</b></td>
-            <td>RHEL subscription information. It is a dictionary. Should be set only if subscription is not present already or subscription has to be updated</td>
+            <td>RHEL subscription information. It is a dictionary. Should be set only if subscription is not already set or subscription has to be updated</td>
             <td>e.g.: { <br />username:"XYZ",<br />password:"ABC" ,<br />release:"8.2"<br />}</td>
         </tr>
 		<tr>

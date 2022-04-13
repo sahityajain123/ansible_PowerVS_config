@@ -1,16 +1,27 @@
 ---
 # this role configures RHEL lpar for sap installation.
 
-# subscribing to RHEL and setting release to {{ rhel_subcription.release }}
-- name: Subscribing to RHEL and setting release to {{ rhel_subcription.release }}
-  shell: |
-   subscription-manager register --username {{ rhel_subscription.username }} --password {{ rhel_subscription.password }} --auto-attach --force
-   subscription-manager release --set={{ rhel_subscription.release }}
+# subscribing to RHEL and setting release to {{ rhel_subscription.release }}
+#- name: Subscribing to RHEL and setting release to {{ rhel_subcription.release }}
+#  shell: |
+#   subscription-manager register --username {{ rhel_subscription.username }} --password {{ rhel_subscription.password }} --auto-attach --force
+#   subscription-manager release --set={{ rhel_subscription.release }}
+#  when: rhel_subscription is defined
+
+# capturing the release prefix for rhel_subscription.release for substitutution in repos name
+- name: get the release prefix
+  shell: echo {{ rhel_subscription.release }} | awk -F'.' '{ print $1 }'
+  register: release_prefix
+  when: rhel_subscription is defined
+
+# setting fact for release prefix
+- set_fact:
+   r_p={{ release_prefix.stdout }}
   when: rhel_subscription is defined
 
 # Add repos for installing RHEL packages required for SAP installation
 - name: Adding RHEL repos
-  shell: subscription-manager repos --enable="rhel-8-for-ppc64le-baseos-e4s-rpms" --enable="rhel-8-for-ppc64le-appstream-e4s-rpms" --enable="rhel-8-for-ppc64le-sap-solutions-e4s-rpms" --enable="rhel-8-for-ppc64le-sap-netweaver-e4s-rpms" --enable="rhel-8-for-ppc64le-highavailability-e4s-rpms"
+  shell: subscription-manager repos --enable="rhel-{{ r_p }}-for-ppc64le-baseos-e4s-rpms" --enable="rhel-{{ r_p }}-for-ppc64le-appstream-e4s-rpms" --enable="rhel-{{ r_p }}-for-ppc64le-sap-solutions-e4s-rpms" --enable="rhel-{{ r_p }}-for-ppc64le-sap-netweaver-e4s-rpms" --enable="rhel-{{ r_p }}-for-ppc64le-highavailability-e4s-rpms"
   when: rhel_subscription is defined
   
 # multipathd daemon is checked whether its up or not. If not, it is started. 
@@ -31,7 +42,7 @@
   with_dict: "{{ interfaces }}"
   when:
   - "item.value.ipv4.address is defined"
-  - "item.value.ipv4.address != host_ip"
+  - host_ip is not defined or  item.value.ipv4.address != host_ip
   - "item.key != 'lo'"
   - "item.value.mtu != 9000"
 
@@ -44,7 +55,7 @@
   with_dict: "{{ interfaces }}"
   when:
   - "item.value.ipv4.address is defined"
-  - "item.value.ipv4.address != host_ip" 
+  - "host_ip is not defined or item.value.ipv4.address != host_ip" 
   - "item.key != 'lo'"
   - "item.value.mtu != 9000"
 
@@ -57,7 +68,7 @@
   with_dict: "{{ interfaces }}"
   when:
   - "item.value.ipv4.address is defined"
-  - "item.value.ipv4.address != host_ip" 
+  - "host_ip is not defined or item.value.ipv4.address != host_ip" 
   - "item.key != 'lo'"
   - "item.value.mtu != 9000"
 

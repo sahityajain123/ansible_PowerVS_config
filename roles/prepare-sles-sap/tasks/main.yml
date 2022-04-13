@@ -28,7 +28,7 @@
   with_dict: "{{ interfaces }}"
   when:
   - "item.value.ipv4.address is defined"
-  - "item.value.ipv4.address != host_ip"
+  - "host_ip is not defined or item.value.ipv4.address != host_ip"
   - "item.key != 'lo'"
   - "item.value.mtu != 9000"
 
@@ -41,7 +41,7 @@
   with_dict: "{{ interfaces }}"
   when:
   - "item.value.ipv4.address is defined"
-  - "item.value.ipv4.address != host_ip"
+  - "host_ip is not defined or item.value.ipv4.address != host_ip"
   - "item.key != 'lo'"
   - "item.value.mtu != 9000"
 
@@ -54,7 +54,7 @@
   with_dict: "{{ interfaces }}"
   when:
   - "item.value.ipv4.address is defined"
-  - "item.value.ipv4.address != host_ip"
+  - "host_ip is not defined or item.value.ipv4.address != host_ip"
   - "item.key != 'lo'"
   - "item.value.mtu != 9000"
 
