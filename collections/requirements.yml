@@ -1,4 +1,0 @@
-#From Ansible Galaxy repository:
-- name: redhat_sap.sap_hostagent
-- name: redhat_sap.sap_hana_deployment
-- name: redhat_sap.sap_s4hana_deployment
