@@ -1,7 +1,3 @@
-#From GitHub repository:
-- src: https://github.com/linux-system-roles/sap-preconfigure.git
-- src: https://github.com/linux-system-roles/sap-hana-preconfigure.git
-- src: https://github.com/linux-system-roles/sap-netweaver-preconfigure.git
 #From Ansible Galaxy repository:
 - name: redhat_sap.sap_hostagent
 - name: redhat_sap.sap_hana_deployment
