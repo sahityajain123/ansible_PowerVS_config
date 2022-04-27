@@ -1,6 +1,6 @@
-namespaces: "power"
+namespaces: "ibm"
 
-name: "power_linux_sap_prepare"
+name: "ansible-power-linux-sap"
 
 version: "0.1.0"
 
@@ -24,10 +24,10 @@ tags:
 
 dependencies: {}
 
-repository: "https://github.com/sahityajain123/ansible_PowerVS_config"
+repository: "https://github.com/IBM/ansible-power-linux-sap"
 
-documentation: "https://github.com/sahityajain123/ansible_PowerVS_config"
+documentation: "https://github.com/IBM/ansible-power-linux-sap"
 
-homepage: "https://github.com/sahityajain123/ansible_PowerVS_config"
+homepage: "https://github.com/IBM/ansible-power-linux-sap"
 
-issues: "https://github.com/sahityajain123/ansible_PowerVS_config/issues"
+issues: "https://github.com/IBM/ansible-power-linux-sap/issues"
