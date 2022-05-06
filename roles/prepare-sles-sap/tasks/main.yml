@@ -9,6 +9,12 @@
    SUSEConnect -p sle-module-public-cloud/{{suse_subscription.release}}/ppc64le
   when: suse_subscription is defined
 
+# making sure all requisite filesets are installed. 
+- name: Checking for multipath package
+  package:
+   name: multipath-tools
+   state: present
+
 # multipathd daemon is checked whether its up or not. If not, it is started. 
 - name: Ensure multipathd daemon is running
   service:
@@ -20,7 +26,6 @@
   set_fact:
    interfaces: "{{ interfaces | default({}) | combine( {item: hostvars[ inventory_hostname ] ['ansible_' + item ]} ) }}"
   with_items: "{{ ansible_interfaces | replace('-', '_') }}"
-
 
 
 # to make the above changes persistent across reboot.
@@ -47,7 +52,6 @@
   - "item.value.ipv4.address is defined"
   - "host_ip is not defined or item.value.ipv4.address != host_ip"
   - "item.key != 'lo'"
-
 
 # to reinforce changes in current boot 
 - name: Restart network 
