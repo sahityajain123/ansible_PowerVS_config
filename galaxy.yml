@@ -1,6 +1,6 @@
-namespaces: "ibm"
+namespace: "sahityajain123"
 
-name: "ansible-power-linux-sap"
+name: "ansible_powervs_linux_sap"
 
 version: "0.1.0"
 
@@ -16,8 +16,6 @@ license_file: "LICENSE"
 tags:
 - power
 - sap
-- RHEL
-- SLES
 - rhel
 - sles
 - ibm
