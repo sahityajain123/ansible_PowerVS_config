@@ -1,5 +1,5 @@
 ---
-### this role preconfigures LPAR for SAP installation requirement. Based on SAP_SOLUTION input, saptune configures the system for HANA or NETWEAVER.
+### this role preconfigures LPAR for SAP installation requirement. Based on sap_solution input, saptune configures the system for HANA or NETWEAVER.
 
 # subscribing to SuSE subscription
 # Add repos for installing SLES packages required for SAP installation
@@ -59,21 +59,21 @@
     name: network 
     state: restarted
 
-# following task checked for SAPTUNE profile on system and apply {{ SAP_SOLUTION }} profile if not applied. Also check for saptune rpm installation
+# following task checked for SAPTUNE profile on system and apply {{ sap_solution }} profile if not applied. Also check for saptune rpm installation
 - name: Checking for saptune package installation
   zypper:
     name: saptune
     state: present
 
-- name: Check if {{ SAP_SOLUTION | upper }} solution is applied or not 
+- name: Check if {{ sap_solution | upper }} solution is applied or not 
   shell: "saptune solution enabled"
   register: saptune_status
  
-- name: Tune SLES for SAP {{ SAP_SOLUTION | upper }}
-  shell: "saptune solution apply {{ SAP_SOLUTION | upper }}"
-  when: saptune_status.stdout.find("{{ SAP_SOLUTION | upper }}") == -1
+- name: Tune SLES for SAP {{ sap_solution | upper }}
+  shell: "saptune solution apply {{ sap_solution | upper }}"
+  when: saptune_status.stdout.find("{{ sap_solution | upper }}") == -1
 
-- name: Activate SLES tuning for SAP {{ SAP_SOLUTION | upper }}
+- name: Activate SLES tuning for SAP {{ sap_solution | upper }}
   shell: "saptune daemon start"
 
 # to Insure that NFS and rpcbind daemon are up. 
