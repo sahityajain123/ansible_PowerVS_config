@@ -32,7 +32,7 @@
   - disks_configuration is defined
   - ansible_distribution is match("SLES*")
  
-- name: checking for lvm packages 
+- name: Checking for lvm packages 
   package:
    name: lvm2
    state: present

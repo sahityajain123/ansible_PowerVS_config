@@ -60,7 +60,7 @@
   shell: grep "user_friendly_names no" /etc/multipath.conf
   register: multipath_alias
   ignore_errors: yes
-- name: setting count variable based on multipath aliasing is enabled or not
+- name: Setting count variable based on multipath aliasing is enabled or not
   set_fact:
    count: 3
   when: multipath_alias.rc == 1
@@ -74,11 +74,11 @@
 
 # no create a new swap device, based on dm-X name of wwn disk.
 # enabling swap device  
-- name: mkswap on  device  {{ swap_dm_device }} 
+- name: Mkswap on  device  {{ swap_dm_device }} 
   shell: mkswap {{ swap_dm_device }} 
 
 # activating swap device 
-- name: swapon the device  {{ swap_dm_device }} 
+- name: Swapon the device  {{ swap_dm_device }} 
   shell: swapon {{ swap_dm_device }} 
 
 

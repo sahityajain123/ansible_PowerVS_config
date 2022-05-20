@@ -1,30 +1,30 @@
 ---
 ### this role is for validation of input sent in  disks_configuration variable. Check for valid WWNs, counts passed in ansible extra vars. Exit with error, if validation fails. 
  
-- name: running rescan command 
+- name: Running rescan command 
   shell: /usr/bin/rescan-scsi-bus.sh -a -c -v
 
 # validate each wwn provided with multipath -ll command, for its presence. fail, if any 1 doesnot match. 
-- name: validating the wwn values passed 
+- name: Validating the wwn values passed 
   shell: /sbin/multipath -ll | grep {{ item }} 
   register:  validation_check  
   with_items: "{{ disks_configuration.wwns | lower }}"
   ignore_errors: true
 
-- name: check for the results 
+- name: Check for the results 
   fail:
     msg: "command {{ item.cmd }} failed" 
   when: item.rc==1
   with_items: "{{ validation_check.results }}"
 
 # to get count of unique WWN
-- name: validate number of wwn present 
+- name: Validate number of wwn present 
   set_fact:
    total_wwn: "{{ disks_configuration.wwns | unique |  length }}"
 
 # fail if total count of disks and sum of counts provided doesnot match. Also match wwn uniq values. Any duplicate, will lead to failure 
 - set_fact: count_total=0
-- name: get the total count as provided 
+- name: Get the total count as provided 
   set_fact: 
    count_total: "{{ count_total|int +item|int }}" 
   with_items: "{{ disks_configuration.counts }}"
@@ -34,7 +34,7 @@
   when:  count_total !=  total_wwn 
 
 # fail if count value and number of items in count, name and paths are different. 
-- name: check for number of fields for counts, names and paths 
+- name: Check for number of fields for counts, names and paths 
   set_fact:
    count_fields: "{{ disks_configuration.counts | length }}"
    names_fields: "{{ disks_configuration.names | length }}"

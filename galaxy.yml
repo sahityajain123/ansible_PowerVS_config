@@ -2,7 +2,7 @@ namespace: "sahityajain123"
 
 name: "ansible_powervs_linux_sap"
 
-version: "0.1.1"
+version: "0.1.3"
 
 readme: "README.md"
 

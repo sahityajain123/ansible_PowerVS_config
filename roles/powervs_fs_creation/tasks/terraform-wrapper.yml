@@ -2,7 +2,7 @@
 # this task reads the variable passed to execute ansible roles, and manipulate them to be passed to fs_creation role, in a single dictionalry for each name variable passed in variable list. 
 # this is an intermediate task, and is required for terraform execution. It is not required if running fs_creation role directly. 
 
-- name: for loop, to manipulate pv listing. #Use this loop to distribute pvs for names provided and use them later for filesystem creation.
+- name: For loop, to manipulate pv listing. #Use this loop to distribute pvs for names provided and use them later for filesystem creation.
   shell: i=0; while [[ $i -lt {{ item.1 }} ]]; do echo {{ item.0 }} ; let i=i+1; done
   register: loop_for_wwn
   with_together:
